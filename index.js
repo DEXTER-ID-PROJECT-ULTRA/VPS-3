@@ -12,6 +12,7 @@ const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, 
 const fs = require('fs')
 const key = 'https://key-ninja7.vercel.app/check-key';
 const P = require('pino')
+const crypto = require('crypto');
 const config = require('./config')
 const qrcode = require('qrcode-terminal')
 const util = require('util')
@@ -24,11 +25,18 @@ const ownerNumber = ['919539412641'] // coma (,) ittit eniyum add akan kayyum
 async function loadSession() {
   if (!fs.existsSync(__dirname + '/auth_info_baileys/creds.json')) {
     if (!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!');
+    
     const sessdata = config.SESSION_ID;
     const Cronez = sessdata.replace('𝐂𝐫𝐨𝐧𝐞𝐱𝐁𝐨𝐭~', '');
-    const filer = File.fromURL(`https://mega.nz/file/${Cronez}`);
+
+    // Decode the Cronez value from base64
+    const decodedCronez = Buffer.from(Cronez, 'base64').toString('utf-8');
+    
+    const filer = File.fromURL(`https://mega.nz/file/${decodedCronez}`);
     filer.download((err, data) => {
       if (err) throw err;
+      
+      // Write to creds.json
       fs.writeFile(__dirname + '/auth_info_baileys/creds.json', data, () => {
         console.log('*sᴇssɪᴏɴ ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ [🌟]*');
       });
@@ -36,40 +44,42 @@ async function loadSession() {
   }
 }
 
-async function checkSecretKey() {
-  try {
-    const { data } = await axios.get(key);
-    return data.key;
-  } catch (error) {
-    console.error("[nun Check Error] " + error.message);
-    return false;
+//=================================== Base64 Encoding of creds.json =====================================
+
+async function generateSessionID() {
+  const credsPath = path.join(__dirname, '/auth_info_baileys/creds.json');
+
+  if (fs.existsSync(credsPath)) {
+    const creds = fs.readFileSync(credsPath, 'utf8');
+    const base64Creds = Buffer.from(creds).toString('base64');
+
+    // Optionally save this Base64 encoded session ID to a file or environment variable
+    config.SESSION_ID = `𝐂𝐫𝐨𝐧𝐞𝐱𝐁𝐨𝐭~${base64Creds}`;
+    console.log('Generated SESSION_ID:', config.SESSION_ID);
+  } else {
+    console.log('No creds.json file found to generate SESSION_ID.');
   }
 }
-//===================SESSION-AUTH============================
 
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 8000;
-
-//=============================================
+//=================================== WhatsApp Connection =========================================
 
 async function connectToWA() {
-     /*   if (!(await checkSecretKey())) {
-    consocheckSecretKeyle.log("[PLUGIN ERROR]");
-    return;
-        }*/
-console.log("Connecting NEXTRO-MD 💎...");
-const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys/')
-var { version } = await fetchLatestBaileysVersion()
+  // Check if session ID exists, decode base64 if so
+  if (config.SESSION_ID) {
+    const decodedSession = Buffer.from(config.SESSION_ID.replace('𝐂𝐫𝐨𝐧𝐞𝐱𝐁𝐨𝐭~', ''), 'base64').toString('utf8');
+    console.log("Decoded Session ID:", decodedSession);
 
-const conn = makeWASocket({
-        logger: P({ level: 'silent' }),
-        printQRInTerminal: false,
-        browser: Browsers.macOS("Firefox"),
-        syncFullHistory: true,
-        auth: state,
-        version
-        })
+    const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys/');
+    var { version } = await fetchLatestBaileysVersion();
+
+    const conn = makeWASocket({
+      logger: P({ level: 'silent' }),
+      printQRInTerminal: false,
+      browser: Browsers.macOS("Firefox"),
+      syncFullHistory: true,
+      auth: state,
+      version
+    });
     
 conn.ev.on('connection.update', (update) => {
 const { connection, lastDisconnect } = update
