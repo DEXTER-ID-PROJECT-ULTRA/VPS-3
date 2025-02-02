@@ -20,32 +20,37 @@ const axios = require('axios')
 const { File } = require('megajs')
 const prefix = '!'
 
-const ownerNumber = ['918138898059', '918078438059','919539412641', '916238768108'] // coma (,) ittit eniyum add akan kayyum
-async function loadSession() {
-  if (!fs.existsSync(__dirname + '/auth_info_baileys/creds.json')) {
-    if (!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!');
-    const sessdata = config.SESSION_ID;
-    const Cronez = sessdata.replace('𝐂𝐫𝐨𝐧𝐞𝐱𝐁𝐨𝐭~', '');
-    const filer = File.fromURL(`https://mega.nz/file/${Cronez}`);
-    filer.download((err, data) => {
-      if (err) throw err;
-      fs.writeFile(__dirname + '/auth_info_baileys/creds.json', data, () => {
-        console.log('*sᴇssɪᴏɴ ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ [🌟]*');
-      });
+const ownerNumber = ['94789958225']
+
+//===================SESSION-AUTH============================
+
+// Function to download and store session credentials for each session ID
+async function downloadSession(sessdata, sessionId) {
+  if (!sessdata) return console.log('Please add your session to SESSION_ID env !!');
+  
+  const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
+  const sessionFilePath = `./auth_info_baileys/${sessionId}/creds.json`;
+
+  filer.download((err, data) => {
+    if (err) throw err;
+    fs.mkdirSync(`./auth_info_baileys/${sessionId}`, { recursive: true });
+    fs.writeFile(sessionFilePath, data, () => {
+      console.log(`Session downloaded for ${sessionId} ✅`);
     });
-  }
+  });
 }
 
-async function checkSecretKey() {
-  try {
-    const { data } = await axios.get(key);
-    return data.key;
-  } catch (error) {
-    console.error("[nun Check Error] " + error.message);
-    return false;
-  }
+if (!fs.existsSync(__dirname + '/auth_info_baileys/')) {
+  fs.mkdirSync(__dirname + '/auth_info_baileys/', { recursive: true });
 }
-//===================SESSION-AUTH============================
+
+// Loop through session IDs from the config and initialize each session
+const sessionIds = config.SESSION_IDS || []; // an array of session IDs
+sessionIds.forEach(sessId => {
+  if (!fs.existsSync(__dirname + `/auth_info_baileys/${sessId}/creds.json`)) {
+    downloadSession(config.SESSION_ID, sessId);
+  }
+});
 
 const express = require("express");
 const app = express();
@@ -53,47 +58,51 @@ const port = process.env.PORT || 8000;
 
 //=============================================
 
-async function connectToWA() {
-     /*   if (!(await checkSecretKey())) {
-    consocheckSecretKeyle.log("[PLUGIN ERROR]");
-    return;
-        }*/
-console.log("Connecting CRONAZ-XD...");
-const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys/')
-var { version } = await fetchLatestBaileysVersion()
+async function connectToWA(sessionId) {
+  console.log(`Connecting WhatsApp bot for session ${sessionId}...`);
 
-const conn = makeWASocket({
-        logger: P({ level: 'silent' }),
-        printQRInTerminal: false,
-        browser: Browsers.macOS("Firefox"),
-        syncFullHistory: true,
-        auth: state,
-        version
-        })
-    
-conn.ev.on('connection.update', (update) => {
-const { connection, lastDisconnect } = update
-if (connection === 'close') {
-if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
-connectToWA()
+  const { state, saveCreds } = await useMultiFileAuthState(__dirname + `/auth_info_baileys/${sessionId}`);
+  const { version } = await fetchLatestBaileysVersion();
+
+  const conn = makeWASocket({
+    logger: P({ level: 'silent' }),
+    printQRInTerminal: false,
+    browser: Browsers.macOS("Firefox"),
+    syncFullHistory: true,
+    auth: state,
+    version
+  });
+
+  conn.ev.on('connection.update', (update) => {
+    const { connection, lastDisconnect } = update;
+    if (connection === 'close') {
+      if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
+        connectToWA(sessionId);
+      }
+    } else if (connection === 'open') {
+      console.log(`Bot for session ${sessionId} connected successfully!`);
+      // Load plugins and send a greeting message
+      const path = require('path');
+      fs.readdirSync("./plugins/").forEach((plugin) => {
+        if (path.extname(plugin).toLowerCase() === ".js") {
+          require("./plugins/" + plugin);
+        }
+      });
+
+      let up = `🚀 _Bot ${sessionId} Connected Successfully!_ ✅ 
+
+--- 👨‍💻🎉 _Welcome to KAVIYA_MD V3!_ 🎉💗 
+
+🔹 PREFIX: ${prefix}
+
+🔹 OWNER: ${ownerNumber}
+
+Thank you for using 👨‍💻KAVIYA_MD V3💗.
+If you need any help, feel free to ask! 🌝💗`;
+
+conn.sendMessage(ownerNumber + "@s.whatsapp.net", { image: { url: `https://i.ibb.co/tpJGQkr/20241122-203120.jpg` }, caption: up })
+
 }
-} else if (connection === 'open') {
-console.log('Installing')
-const path = require('path');
-fs.readdirSync("./plugins/").forEach((plugin) => {
-if (path.extname(plugin).toLowerCase() == ".js") {
-require("./plugins/" + plugin);
-}
-});
-console.log('Plugins Installed')
-console.log('Connected')
-      
-        let AmeenInt = '120363232826409191@g.us'
-        let Cronezz = '*BOT CONNECTED✅*\n*RUNNING ON:* RENDER'
-        conn.sendMessage(AmeenInt, { 
-        text: Cronezz
-  })
-  }
 })
 conn.ev.on('creds.update', saveCreds)  
         
