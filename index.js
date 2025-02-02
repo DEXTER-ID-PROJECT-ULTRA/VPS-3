@@ -10,7 +10,7 @@ Browsers
 //const Ameen = require('./lib/Cronex.js')
 const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson } = require('./lib/functions')
 const fs = require('fs')
-const key = 'https://key-ninja7.vercel.app/check-key1';
+const key = 'https://key-ninja7.vercel.app/check-key';
 const P = require('pino')
 const config = require('./config')
 const qrcode = require('qrcode-terminal')
@@ -18,22 +18,19 @@ const util = require('util')
 const { sms,downloadMediaMessage } = require('./lib/msg')
 const axios = require('axios')
 const { File } = require('megajs')
-const prefix = '!'
+const prefix = '.'
 
-const ownerNumber = ['94789958225']
-
-//===================SESSION-AUTH============================
-
+const ownerNumber = ['919539412641'] // coma (,) ittit eniyum add akan kayyum
 async function loadSession() {
   if (!fs.existsSync(__dirname + '/auth_info_baileys/creds.json')) {
     if (!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!');
     const sessdata = config.SESSION_ID;
-    const Cronez = sessdata.replace('𝐂𝐫𝐨𝐧𝐞𝐱𝐁𝐨𝐭~', '');
+    const Cronez = sessdata.replace('𝑵𝒆𝒙𝒕𝒓𝒐-𝑴𝒅~', '');
     const filer = File.fromURL(`https://mega.nz/file/${Cronez}`);
     filer.download((err, data) => {
       if (err) throw err;
       fs.writeFile(__dirname + '/auth_info_baileys/creds.json', data, () => {
-        console.log('*sᴇssɪᴏɴ ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ [🌟]*');
+        console.log('Checking Session.....');
       });
     });
   }
@@ -61,7 +58,7 @@ async function connectToWA() {
     consocheckSecretKeyle.log("[PLUGIN ERROR]");
     return;
         }*/
-console.log("Connecting CRONAZ-XD...");
+console.log("Connecting NEXTRO-MD 💎...");
 const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys/')
 var { version } = await fetchLatestBaileysVersion()
 
@@ -75,35 +72,52 @@ const conn = makeWASocket({
         })
     
 conn.ev.on('connection.update', (update) => {
-    const { connection, lastDisconnect } = update;
-    if (connection === 'close') {
-      if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
-        connectToWA(sessionId);
-      }
-    } else if (connection === 'open') {
-      console.log(`Bot for session ${sessionId} connected successfully!`);
-      // Load plugins and send a greeting message
-      const path = require('path');
-      fs.readdirSync("./plugins/").forEach((plugin) => {
-        if (path.extname(plugin).toLowerCase() === ".js") {
-          require("./plugins/" + plugin);
-        }
-      });
-
-      let up = `🚀 _Bot ${sessionId} Connected Successfully!_ ✅ 
-
---- 👨‍💻🎉 _Welcome to KAVIYA_MD V3!_ 🎉💗 
-
-🔹 PREFIX: ${prefix}
-
-🔹 OWNER: ${ownerNumber}
-
-Thank you for using 👨‍💻KAVIYA_MD V3💗.
-If you need any help, feel free to ask! 🌝💗`;
-
-conn.sendMessage(ownerNumber + "@s.whatsapp.net", { image: { url: `https://i.ibb.co/tpJGQkr/20241122-203120.jpg` }, caption: up })
-
+const { connection, lastDisconnect } = update
+if (connection === 'close') {
+if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
+connectToWA()
 }
+} else if (connection === 'open') {
+console.log('Installing')
+const path = require('path');
+fs.readdirSync("./plugins/").forEach((plugin) => {
+if (path.extname(plugin).toLowerCase() == ".js") {
+require("./plugins/" + plugin);
+}
+});
+console.log('Plugins Installed successfully')
+console.log('Connected to whatsapp ✅️')
+     
+
+let sjid = '120363378523753848@g.us'
+
+let ajxal = { "key": { "participants":"0@s.whatsapp.net", "remoteJid": "status@broadcast", "fromMe": false, "id": "Halo" }, "message": { "contactMessage": { "displayName": "ɴᴇxᴛʀᴏ-ᴍᴅ","vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=919539412641:919539412641\nitem1.X-ABLabel:Ponsel\nEND:VCARD` }}, "participant": "0@s.whatsapp.net" }
+   
+let surl  =("https://chat.whatsapp.com/EjgS7jDeksLGIbG0Cm0RtW");
+let stext = ("*NEXTRO-MD CONNECTED*\n\n_Version : 1.0.0_\n_Mode: public_\n_Plugins : undefined_");
+
+
+conn.sendMessage(sjid, { text: stext, contextInfo: { externalAdReply: {
+
+title: "𝑵𝒆𝒙𝒕𝒓𝒐-𝑴𝒅",
+                                                                  
+body: "_Made with ❤️_",
+
+sourceUrl: surl,
+
+mediaUrl: surl,
+
+mediaType: 1,
+
+showAdAttribution: true,
+
+renderLargerThumbnail: true,
+
+thumbnailUrl: "https://files.catbox.moe/1pd6gc.jpeg" }}}, { quoted : ajxal });
+
+  
+        
+  }
 })
 conn.ev.on('creds.update', saveCreds)  
         
@@ -111,7 +125,7 @@ conn.ev.on('creds.update', saveCreds)
 conn.ev.on('messages.upsert', async(mek) => {
             if (!(await checkSecretKey())) {
       console.log("[PLUGIN ERROR]");
-      return;
+      
             }
 mek = mek.messages[0]
 if (!mek.message) return	
@@ -177,6 +191,7 @@ conn.sendFileUrl = async (jid, url, caption, quoted, options = {}) => {
               }
             }
 
+  
 
 const events = require('./command')
 const cmdName = isCmd ? body.slice(1).trim().split(" ")[0].toLowerCase() : false;
@@ -213,7 +228,7 @@ command.function(conn, mek, m,{from, quoted, body, isCmd, command, args, q, isGr
 })
 }
 app.get("/", (req, res) => {
-res.send("CRONAZ-XD 🧚🏻");
+res.send("NEXTRO-MD 🗿📈💗");
 });
 app.listen(port, () => console.log(`Server listening on port http://localhost:${port}`));
 setTimeout(() => {
