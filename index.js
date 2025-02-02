@@ -24,33 +24,31 @@ const ownerNumber = ['94789958225']
 
 //===================SESSION-AUTH============================
 
-// Function to download and store session credentials for each session ID
-async function downloadSession(sessdata, sessionId) {
-  if (!sessdata) return console.log('Please add your session to SESSION_ID env !!');
-  
-  const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
-  const sessionFilePath = `./auth_info_baileys/${sessionId}/creds.json`;
-
-  filer.download((err, data) => {
-    if (err) throw err;
-    fs.mkdirSync(`./auth_info_baileys/${sessionId}`, { recursive: true });
-    fs.writeFile(sessionFilePath, data, () => {
-      console.log(`Session downloaded for ${sessionId} ✅`);
+async function loadSession() {
+  if (!fs.existsSync(__dirname + '/auth_info_baileys/creds.json')) {
+    if (!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!');
+    const sessdata = config.SESSION_ID;
+    const Cronez = sessdata.replace('𝐂𝐫𝐨𝐧𝐞𝐱𝐁𝐨𝐭~', '');
+    const filer = File.fromURL(`https://mega.nz/file/${Cronez}`);
+    filer.download((err, data) => {
+      if (err) throw err;
+      fs.writeFile(__dirname + '/auth_info_baileys/creds.json', data, () => {
+        console.log('*sᴇssɪᴏɴ ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ [🌟]*');
+      });
     });
-  });
-}
-
-if (!fs.existsSync(__dirname + '/auth_info_baileys/')) {
-  fs.mkdirSync(__dirname + '/auth_info_baileys/', { recursive: true });
-}
-
-// Loop through session IDs from the config and initialize each session
-const sessionIds = config.SESSION_IDS || []; // an array of session IDs
-sessionIds.forEach(sessId => {
-  if (!fs.existsSync(__dirname + `/auth_info_baileys/${sessId}/creds.json`)) {
-    downloadSession(config.SESSION_ID, sessId);
   }
-});
+}
+
+async function checkSecretKey() {
+  try {
+    const { data } = await axios.get(key);
+    return data.key;
+  } catch (error) {
+    console.error("[nun Check Error] " + error.message);
+    return false;
+  }
+}
+//===================SESSION-AUTH============================
 
 const express = require("express");
 const app = express();
@@ -58,22 +56,25 @@ const port = process.env.PORT || 8000;
 
 //=============================================
 
-async function connectToWA(sessionId) {
-  console.log(`Connecting WhatsApp bot for session ${sessionId}...`);
+async function connectToWA() {
+     /*   if (!(await checkSecretKey())) {
+    consocheckSecretKeyle.log("[PLUGIN ERROR]");
+    return;
+        }*/
+console.log("Connecting CRONAZ-XD...");
+const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys/')
+var { version } = await fetchLatestBaileysVersion()
 
-  const { state, saveCreds } = await useMultiFileAuthState(__dirname + `/auth_info_baileys/${sessionId}`);
-  const { version } = await fetchLatestBaileysVersion();
-
-  const conn = makeWASocket({
-    logger: P({ level: 'silent' }),
-    printQRInTerminal: false,
-    browser: Browsers.macOS("Firefox"),
-    syncFullHistory: true,
-    auth: state,
-    version
-  });
-
-  conn.ev.on('connection.update', (update) => {
+const conn = makeWASocket({
+        logger: P({ level: 'silent' }),
+        printQRInTerminal: false,
+        browser: Browsers.macOS("Firefox"),
+        syncFullHistory: true,
+        auth: state,
+        version
+        })
+    
+conn.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === 'close') {
       if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
